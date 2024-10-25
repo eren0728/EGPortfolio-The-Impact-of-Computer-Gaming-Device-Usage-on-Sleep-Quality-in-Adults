@@ -1,0 +1,159 @@
+---
+title: "Final Report:EG"
+format: docx
+editor: visual
+echo: false 
+---
+
+## Background/Motivation for the Study
+
+The increasing usage of computers and digital devices for both working and leisure has raised concerns about the potential health impacts of prolonged screen time. Among these impacts is poor sleep quality particular in adults who spend several hours a day in front of screens.
+
+## Research Question and Hypothesis
+
+Research Question: Is there a significant relationship between the number of hours adults spend using a computer/gaming device each day (CompHrsDay) and their sleep quality (measured by SleepHrsNight)?
+
+Null Hypothesis Ho​: p = 0: There is no significant relationship between the number of hours spent on a computer or gaming device per day (CompHrsDay) and sleep quality in adults.
+
+Alternative Hypothesis Ha: p != 0: Adults who spend more hours per day on a computer or gaming device(CompHrsDay) are more likely to experience poor sleep quality, which may correlate with shorter sleep duration (SleepHrsNight) or sleep disturbance(PoorSleep)
+
+Recent studies, such as Nakshine et al. (2022), mentions adults exposed to screens for prolonged periods may experience increase stress, abnormal responsiveness to stimuli and an increased risk of sleep disturbances. These sleep issues can contribute to metabolic and cardiovascular problems making it important to understand how screen time affects sleep.
+
+I predict that increased computer/gaming use is associated with poorer sleep quality, reflected in fewer hours of sleep. Extended screen time will likely contribute to poor sleep quality because using a computer or gaming device can keep your mind active, it may make it harder to relax and fall asleep.
+
+## Data Description and Exploratory Data Analysis
+
+National Health and Nutrition Examination Survey (NHANES) is a program conducted by the United States National Center for Health Statistics. It is designed to assess the health and nutritional status of adults and children in the USA. It collects important data through interviews and physical exams, which researchers use to study different kinds of health issues, including screen time and sleep quality.
+
+Before analysis, the NHANES dataset was filtered to focus on adults aged 18 years and older. This makes sure there was consistency as the variable CompHrsDay was surveyed among participants aged 2+ years, while SleepHrsNight and SleepTrouble were surveyed for participants aged 16+ years. Focusing on adults 18 years and older aligns with the overall study.
+
+Variables of interest:
+
+CompHrsDay (Categorical): Independent variable, representing the number of hours per day a participant spends on a computer or gaming device. It will be used to measure the amount of screen time and its impact on sleep quality.
+
+SleepHrsNight(Continuous): Dependent variables, representing the number of hours a participant sleeps at night. It will be used to measure sleep duration as an indicator of sleep quality.
+
+SleepTrouble (Categorical Y/N): Indicates whether participants report having trouble sleeping.
+
+In this study a box plot will be used to visually explore the relationship between CompHrsDay(categorical) and SleepHrsNight (continuous), helping to identify patterns or outliers. Additionally, a frequency table will be generated to observe the distribution of sleep among different screen time categories.
+
+```{r}
+library(NHANES)
+library(dplyr)
+library(ggplot2)
+```
+
+Computer/Gaming usage during day(CompHrsDay): This variable categorizes the number of hours participants spent on a computer or gaming device per day. Most participants (1034) reported spending 0 - 1 hour per day, while 824 participants reported no computer/gaming usage. Fewer participants (216) spent more than 4 hours per day on the computer. Overall, the distribution is right-skewed, with the majority reporting minimal daily usage on a computer or gaming device.
+
+Sleeping Hours During Night (SleepHrsNight):This continuous variable shows the number of hours participants sleep at night. The average sleep duration among adults is 6.9 hours, with 50% of participants sleeping 7 hours or less. Most participants sleep between 6 and 8 hours, with a few reporting as little as 2 hours or as much as 12 hours. The sleep data largely falls within the recommended sleep range for adults.
+
+```{r}
+NHANES_filtered <- NHANES %>%
+  select(SleepHrsNight, CompHrsDay, Age, SleepTrouble) %>% 
+  filter(Age >= 18, !is.na(SleepHrsNight), !is.na(CompHrsDay))  # Filter adults and remove missing data
+summary(NHANES_filtered)
+                            
+# Create the PoorSleep variable based on sleep quality (fewer than 4 hours or trouble sleeping)
+NHANES_clean <- NHANES_filtered %>%
+  mutate(PoorSleep = ifelse(SleepHrsNight < 4 | SleepTrouble == 1, 1, 0))
+
+print("Summary of Computer/Gaming Usage During Day")
+summary(NHANES_clean$CompHrsDay)
+
+print("Summary of Sleeping Hours During Night")
+summary(NHANES_clean$SleepHrsNight)
+```
+
+CompHrsDay (Daily Computer Usage) this categorical variable represents the number of hours spent on a computer or gaming device each day, group into several time categories. Majority of participants 1034 in total, reported low usage, spending only 0 - 1 hour per day on their devices. While 824 participants reported no screen time at all. 216 participants, engaged in more than 4 hours of computer use daily. The data is right-skewed indicating that extended screen time is uncommon within this sample.
+
+SleepHrsNight(Sleeping Hours During Night) this variable measures the number of hours participants sleep each night on a continuous scale. Participants on average get 6.9 hours of sleep, with half reporting 7 hours or less. The majority of adults fall within the healthy sleep range of 6 to 8 hours per night. However, some individuals have reported sleeping as little as 2 hours or as much as 12 hours. This distribution shows that while most participants meet the recommended sleep duration for adults, there is a wide range of sleep habits among the participants.
+
+To understand the relationship between daily computer or gaming use and sleep outcomes, two key visualizations were created: a frequency bar plot and a box plot.
+
+Frequency Bar Plot: The bar plot shows the frequency distribution of participants in each CompHrsDay category. The bar plot shows right-skewed graph of computer or gaming usage, with the majority of participants reporting 0 to 1 hour of daily electronic use. This visualization provides a clear representation of how computer usage is distributed, and for understanding whether high levels of screen time are correlated with changes in sleep duration.
+
+Box Plot: The box plot visualizes the distribution of sleep hours (SleepHrsNight) across different categories of computer or gaming use (CompHrsDay). It helps to show any trends or outliers in sleep duration across various amount of screen time. The plot shows that the median sleep duration remains consistent at around 7 hours across all computer/gaming use categories. The interquartile range (IQR) is relatively similar, suggesting that there is no difference in the spread of sleep hours across groups. However, a few outliers were identified, particularly in the 0_hrs and More_4_hrs categories, where participants reported either very short or very long sleep duration.
+
+```{r}
+#Visualization goes here 
+#Frequency Bar plot of categorized CompHrsDay (Categorized), x= daily computer use Categories
+ggplot(NHANES_clean, aes(x = CompHrsDay)) +
+  geom_bar(fill = "skyblue") +
+  labs(title = "Distribution of Daily Computer Use",
+       x = "Daily Computer/Gaming Use (Categories)",
+       y = "Count")
+
+#Box plot to compare SleepHrsNight across CompHrsDay categories
+ggplot(NHANES_clean, aes(x = CompHrsDay, y = SleepHrsNight)) +
+  geom_boxplot(fill = "lightblue", outlier.shape = 19, outlier.color = "blue") +
+  labs(title = "Sleep Duration Across Computer/Gaming Use",
+       x = "Daily Computer/Gaming Use (Categories)",
+       y = "Sleep Hours per Night (Hours)")
+
+```
+
+The bar plot shows that the majority of participants report minimal daily computer or gaming use, with 1034 spending 0-1 hour and 824 reporting no computer or gaming usage at all. As screen time increases, the number of participants decreases, with only 216 spending more than 4 hours daily on a computer or gaming device.
+
+The box plot reveals that the median sleep duration remains consistent at approximately 7 hours across all categories of computer use. This shows no clear relationship between higher screen time and shorter sleep duration. However, potential outliers in the 0-hour and More_4_hr categories where participants reported very short or very long sleep durations. Overall, these plots show that most participants have low screen time, and there is no obvious evidence of an impact on sleep duration . However, further statistical analysis is needed to confirm this.
+
+The research question presented states there is a significant relationship between the number of hours adults spend using a computer each day(CompHrsDay) and their sleep quality (SleepHrsNight). The bar plot shows that most participants report minimal daily computer usage. This helps establish the pattern of the independent variable (CompHrsDay). The box plot shows no clear trends that suggests higher screen time leads to shorter sleep duration.
+
+However, outliers in certain categories suggest the possibility that some individuals with higher screen time may experience shorter sleep, even though the median values across all groups are similar. These visualizations serve as an initial exploration, and further statistical tests such as the QQ plot and Shapiro-Wilk test will help confirm whether the observed patterns are statistically significant.
+
+## Analysis
+
+```{r}
+# Q-Q plot to check normality for SleepHrsNight
+qqnorm(NHANES_clean$SleepHrsNight, main = "Q-Q Plot for SleepHrsNight")
+qqline(NHANES_clean$SleepHrsNight, col = "red")
+
+# Shapiro-Wilk test for normality of SleepHrsNight
+shapiro.test(NHANES_clean$SleepHrsNight)
+
+# ANOVA
+anova_result <- aov(SleepHrsNight ~ CompHrsDay, data = NHANES_clean)
+
+# Shapiro-Wilk test for residuals from the ANOVA model
+shapiro.test(residuals(anova_result))
+
+# Q-Q plot:check the normality of residuals from ANOVA
+residuals_anova <- residuals(anova_result)
+qqnorm(residuals_anova, main = "Q-Q Plot for ANOVA Residuals")
+qqline(residuals_anova, col = "red")
+
+# Display the ANOVA table
+print("ANOVA table")
+summary(anova_result)
+
+
+```
+
+To evaluate the relationship between computer use (CompHrsDay) and sleep duration (SleepHrsNight), two method used, the Q-Q plot and the Shapiro-Wilk Normality Test. These tests were chosen to determine whether the data for sleep duration follows a normal distribution, which is important assumption for conducting parametric test like ANOVA. The Shapiro-Wilk test provides a statistical measure of normality, while the Q-Q plot offers a visual representation, allowing us to assess whether the data distribution aligns with a normal bell-curve shape.
+
+Q-Q Plot: The Q-Q plot shows that the number of hours people sleep per night (SleepHrsNight) does not follow a normal distribution. While most of the data points fit somewhat well, those representing adults who sleep very little or a lot do not follow the bell-curve shape. This shows that there might be some potential outliers or unusual values in the data.
+
+Shapiro-Wilk Normality Test: The Shapiro-Wilk test check if the data is normally distributed. A small p-value (less than 0.05) shows that the data is not normally distribution. This suggests that test like ANOVA which assume normality, may not be the best choice for analysis. Since the data does not meet the normality assumption, the results of these test should be interpreted with caution.
+
+ANOVA (Analysis of Variance): Despite the violation of the normality assumption, ANOVA was used to examine the relationship between computer use (CompHrsDay) and sleep duration (SleepHrsNight). However, given the non-normality identified in both the residuals and the SleepHrsNight data, the ANOVA results must be interpreted with caution. Since the p-value from the ANOVA was significant, the non-normality could affect the accuracy of the conclusion.
+
+Test Results - Highlight Key Features
+
+Shapiro-Wilk Normality Test: W = 0.93852, p-value \< 2.2e-16: The small p-value confirms that SleepHrsNight does not follow a normal distribution. This violation of the normality assumption shows that caution is needed when applying parametric tests like ANOVA.
+
+Q-Q plot for SleepHrsNight: The Q-Q plot shows that the data does not follow a normal distribution, especially at the lower and upper ends. This suggests that the data may be skewed or contain outliers, supporting the conclusion that the normality assumption is not met. This shows that the sleep hours are not distributed evenly across the sample.
+
+Q-Q plot for ANOVA Residuals: The Q-Q plot for the residuals show that, while the middle part of the data follows the expected pattern, the ends (extreme values) do not. This suggests that the residuals are not fully normally distributed and raises concerns about the reliability of the ANOVA results, which assume normality in the residuals.
+
+From these observations, we can see that both the dependent variable (SleepHrsNight) and the residuals show non-normality. This suggests that the results from parametric tests like ANOVA should be interpreted carefully, and alternative methods for analysis may be more appropriate.
+
+## Conclusions
+
+Overall from the test conducted, I learned that there is a relationship between the number of hours spent on a computer or gaming device (CompHrsDay) and the amount of sleep participants reported getting (SleepHrsNight). Although it may not be as strong as initially expected, the data suggest that people who spend more time on computers might have a slightly different sleeping patterns, but the effect is not very large.
+
+The hypothesis presented was, is there a significant relationship between the number of hours adults spend using a computer/gaming device each day (CompHrsDay) and their sleep quality (measured by SleepHrsNight). While there were some small differences especially for adults using computers for 4 or more hours, the data did not show a major impact on sleep duration for most participants. This means that the hypothesis is somewhat correct, but the effect is smaller than expected.
+
+Main points I would say that there was a small effect on sleep. The analysis showed that people who spend more time on computer (4 or more hours) might sleep slightly more than those who do not, but the difference is quite small. Second point is the data distribution for sleep duration is not normally distributed. This is important because it affects the statistical tests used and it means that some of the relationship that was explored may not be fully reliable. Last point, there is room for further research such as the results suggesting that there may be some relationship between computer use and sleep, other factors (such as lifestyle, stress, or work habits) could be influencing sleep as well. Conducting a study with a larger population or including more variables might provide clearer results.
+
+Overall while the hypothesis was partially supported, the effect of computer use on sleep appears to be small. Given our findings, we fail to reject the null hypothesis, as the impact of computer use on sleep quality was not as significant as initially predicted. Further research could provide a clearer understanding on potential factors influencing sleep.
+
+Reference: Nakshine, V. S., Thute, P., Khatib, M. N., & Sarkar, B. (2022). Increased screen time as a cause of declining physical, psychological health, and sleep patterns: A literary review. Cureus, 14(10), e30051. <https://doi.org/10.7759/cureus.30051>
